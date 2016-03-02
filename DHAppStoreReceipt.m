@@ -10,13 +10,13 @@
 #import "Payload.h"
 
 @implementation DHASN1Attribute {
-    NSData *value;
+    NSData * _Nullable value;
 }
 @synthesize type;
 @synthesize version;
 @synthesize dataValue = value;
 
-- (id)initWithType:(DHAttributeType)theType version:(NSInteger)theVersion value:(id)theValue {
+- (nonnull instancetype)initWithType:(DHAttributeType)theType version:(NSInteger)theVersion value:(nullable id)theValue {
     self = [super init];
     if (self) {
         type = theType;
@@ -31,7 +31,7 @@
     return bytes[0];
 }
 
-- (NSString *)stringValue {
+- (NSString * _Nullable)stringValue {
     NSString *result = nil;
 
     // strip data type & length from value data, leaving us with only the juicy string bits
@@ -44,7 +44,7 @@
     return result;
 }
 
-- (NSDate *)dateValue {
+- (NSDate * _Nullable)dateValue {
     NSDate *date = nil;
     if ([self dataType] == V_ASN1_IA5STRING) {
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -77,8 +77,12 @@
     NSDictionary *attributesByType;
 }
 
-- (NSArray *)attributesForData:(NSData *)receiptData {
+- (NSArray * _Nonnull)attributesForData:(NSData * _Nullable)receiptData {
     NSMutableArray *attributes = [NSMutableArray array];
+    if (receiptData == nil) {
+        return attributes;
+    }
+
     void *data = (void *)[receiptData bytes];
     size_t len = (size_t)[receiptData length];
     Payload_t *payload = NULL;
@@ -95,21 +99,31 @@
     return attributes;
 }
 
-- (DHASN1Attribute *)attributeByType:(DHAttributeType)type {
+- (nullable DHASN1Attribute *)attributeByType:(DHAttributeType)type {
     return [attributesByType objectForKey:@(type)];
 }
 
 @end
 
+@interface DHAppStoreReceipt ()
+@property(readwrite, nonatomic) NSArray<DHInAppReceipt *> * _Nonnull inAppReceipts;
+@end
+
 @implementation DHAppStoreReceipt {
-    NSDictionary *inAppReceiptsByProductId;
 }
 
-+ (DHAppStoreReceipt *)mainBundleReceipt {
+- (NSArray<DHInAppReceipt *> *)inAppReceipts {
+    if (!_inAppReceipts) {
+        _inAppReceipts = [NSArray<DHInAppReceipt *> new];
+    }
+    return _inAppReceipts;
+}
+
++ (DHAppStoreReceipt * _Nullable)mainBundleReceipt {
     return [[DHAppStoreReceipt alloc] initWithURL:[[NSBundle mainBundle] appStoreReceiptURL]];
 }
 
-- (id)initWithURL:(NSURL *)receiptURL {
+- (_Nullable instancetype)initWithURL:(NSURL * _Nonnull)receiptURL {
     self = [super init];
     if (self) {
         NSData *receiptData = [NSData dataWithContentsOfURL:receiptURL];
@@ -121,16 +135,18 @@
 
         NSMutableDictionary *mutableAttributes = [NSMutableDictionary dictionary];
         NSMutableDictionary *mutableInAppReceipts = [NSMutableDictionary dictionary];
+        NSMutableArray <DHInAppReceipt *>*mutableInAppReceiptsArray = [NSMutableArray array];
         for (DHASN1Attribute *attribute in [self attributesForData:receiptData]) {
             if (DH_ATTRIBUTE_TYPE_IN_APP_RECEIPT == attribute.type) {
                 DHInAppReceipt *inAppReceipt = [[DHInAppReceipt alloc] initWithData:attribute.dataValue];
                 [mutableInAppReceipts setObject:inAppReceipt forKey:inAppReceipt.productId];
+                [mutableInAppReceiptsArray addObject:inAppReceipt];
             } else {
                 [mutableAttributes setObject:attribute forKey:@(attribute.type)];
             }
         }
         attributesByType = [NSDictionary dictionaryWithDictionary:mutableAttributes];
-        inAppReceiptsByProductId = [NSDictionary dictionaryWithDictionary:mutableInAppReceipts];
+        self.inAppReceipts = [NSArray arrayWithArray:mutableInAppReceiptsArray];
     }
     return self;
 }
@@ -156,28 +172,20 @@
     return [NSData dataWithBytes:octets->data length:(NSUInteger)octets->length];
 }
 
-- (DHInAppReceipt *)receiptForProductId:(NSString *)productId {
-    return [inAppReceiptsByProductId objectForKey:productId];
-}
-
-- (NSString *)bundleId {
+- (nullable NSString *)bundleId {
     return [[self attributeByType:DH_ATTRIBUTE_TYPE_BUNDLE_ID] stringValue];
 }
 
-- (NSString *)applicationVersion {
+- (nullable NSString *)applicationVersion {
     return [[self attributeByType:DH_ATTRIBUTE_TYPE_APPLICATION_VERSION] stringValue];
 }
 
-- (NSData *)opaqueValue {
+- (nullable NSData *)opaqueValue {
     return [[self attributeByType:DH_ATTRIBUTE_TYPE_OPAQUE_VALUE] dataValue];
 }
 
-- (NSData *)SHA1Hash {
+- (nullable NSData *)SHA1Hash {
     return [[self attributeByType:DH_ATTRIBUTE_TYPE_SHA_HASH] dataValue];
-}
-
-- (NSArray *)inAppReceipts {
-    return [inAppReceiptsByProductId allValues];
 }
 
 - (NSString *)originalApplicationVersion {
@@ -189,7 +197,7 @@
 @implementation DHInAppReceipt
 @synthesize receiptData;
 
-- (id)initWithData:(NSData *)data {
+- (_Nonnull instancetype)initWithData:(NSData * _Nonnull)data {
     self = [super init];
     if (self) {
         receiptData = data;
@@ -206,31 +214,31 @@
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_QUANTITY] integerValue];
 }
 
-- (NSString *)productId {
+- (nullable NSString *)productId {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_PRODUCT_ID] stringValue];
 }
 
-- (NSString *)transactionId {
+- (nullable NSString *)transactionId {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_TRANSACTION_ID] stringValue];
 }
 
-- (NSString *)originalTransactionId {
+- (nullable NSString *)originalTransactionId {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_ORIGINAL_TRANSACTION_ID] stringValue];
 }
 
-- (NSDate *)purchaseDate {
+- (nullable NSDate *)purchaseDate {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_PURCHASE_DATE] dateValue];
 }
 
-- (NSDate *)originalPurchaseDate {
+- (nullable NSDate *)originalPurchaseDate {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_ORIGINAL_PURCHASE_DATE] dateValue];
 }
 
-- (NSDate *)subscriptionExpirationDate {
+- (nullable NSDate *)subscriptionExpirationDate {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_SUBSCRIPTION_EXPIRATION_DATE] dateValue];
 }
 
-- (NSDate *)cancellationDate {
+- (nullable NSDate *)cancellationDate {
     return [[self attributeByType:DH_ATTRIBUTE_IN_APP_TYPE_CANCELLATION_DATE] dateValue];
 }
 

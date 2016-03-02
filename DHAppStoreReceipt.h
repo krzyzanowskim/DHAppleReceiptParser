@@ -28,52 +28,52 @@ typedef enum {
 
 @interface DHASN1Attribute : NSObject
 
-- (id)initWithType:(DHAttributeType)type version:(NSInteger)version value:(id)value;
+- (nonnull instancetype)initWithType:(DHAttributeType)type version:(NSInteger)version value:(nullable id)value;
 
 @property DHAttributeType type;
 @property NSInteger version;
-@property(readonly) NSData *dataValue;
-@property(readonly) NSString *stringValue;
-@property(readonly) NSDate *dateValue;
+@property(readonly) NSData * _Nullable dataValue;
+@property(readonly) NSString * _Nullable stringValue;
+@property(readonly) NSDate * _Nullable dateValue;
 @property(readonly) NSInteger integerValue;
 
 @end
 
 @interface DHASN1Parser : NSObject
 
-- (NSArray *)attributesForData:(NSData *)data;
+- (NSArray * _Nonnull)attributesForData:(NSData * _Nullable)data;
 
 @end
 
 @interface DHAppStoreReceipt : DHASN1Parser
 
-+ (DHAppStoreReceipt *)mainBundleReceipt;
-- (id)initWithURL:(NSURL *)receiptURL;
-- (DHInAppReceipt *)receiptForProductId:(NSString *)productId;
++ (DHAppStoreReceipt * _Nullable)mainBundleReceipt;
+- (_Nullable instancetype)initWithURL:(NSURL * _Nonnull)receiptURL;
 
-@property(readonly) NSString *bundleId;
-@property(readonly) NSString *applicationVersion;
-@property(readonly) NSData *opaqueValue;
-@property(readonly) NSData *SHA1Hash;
-@property(readonly) NSArray *inAppReceipts;
-@property(readonly) NSString *originalApplicationVersion;
+@property(readonly) NSString * _Nullable bundleId;
+@property(readonly) NSString * _Nullable applicationVersion;
+@property(readonly) NSData * _Nullable opaqueValue;
+@property(readonly) NSData * _Nullable SHA1Hash;
+@property(readonly, nonatomic) NSArray<DHInAppReceipt *> * _Nonnull inAppReceipts;
+@property(readonly) NSString * _Null_unspecified originalApplicationVersion;
 
 @end
 
 @interface DHInAppReceipt : DHASN1Parser
 
-- (id)initWithData:(NSData *)data;
+- (_Nonnull instancetype)init NS_UNAVAILABLE;
+- (_Nonnull instancetype)initWithData:(NSData * _Nonnull)data;
 
 @property(readonly) NSInteger quantity;
-@property(readonly) NSString *productId;
-@property(readonly) NSString *transactionId;
-@property(readonly) NSString *originalTransactionId;
-@property(readonly) NSDate *purchaseDate;
-@property(readonly) NSDate *originalPurchaseDate;
-@property(readonly) NSDate *subscriptionExpirationDate;
-@property(readonly) NSDate *cancellationDate;
+@property(readonly) NSString * _Nullable productId;
+@property(readonly) NSString * _Nullable transactionId;
+@property(readonly) NSString * _Nullable originalTransactionId;
+@property(readonly) NSDate * _Nullable purchaseDate;
+@property(readonly) NSDate * _Nullable originalPurchaseDate;
+@property(readonly) NSDate * _Nullable subscriptionExpirationDate;
+@property(readonly) NSDate * _Nullable cancellationDate;
 @property(readonly) NSInteger webOrderLineItemId;
 
-@property(readonly) NSData *receiptData;
+@property(readonly) NSData * _Nonnull receiptData;
 
 @end
