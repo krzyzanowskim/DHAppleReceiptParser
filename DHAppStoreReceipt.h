@@ -49,6 +49,7 @@ typedef enum {
 
 + (DHAppStoreReceipt * _Nullable)mainBundleReceipt;
 - (_Nullable instancetype)initWithURL:(NSURL * _Nonnull)receiptURL;
+- (DHInAppReceipt * _Nullable)receiptForProductId:(NSString * _Nonnull)productId;
 
 @property(readonly) NSString * _Nullable bundleId;
 @property(readonly) NSString * _Nullable applicationVersion;

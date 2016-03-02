@@ -134,12 +134,10 @@
         }
 
         NSMutableDictionary *mutableAttributes = [NSMutableDictionary dictionary];
-        NSMutableDictionary *mutableInAppReceipts = [NSMutableDictionary dictionary];
         NSMutableArray <DHInAppReceipt *>*mutableInAppReceiptsArray = [NSMutableArray array];
         for (DHASN1Attribute *attribute in [self attributesForData:receiptData]) {
             if (DH_ATTRIBUTE_TYPE_IN_APP_RECEIPT == attribute.type) {
                 DHInAppReceipt *inAppReceipt = [[DHInAppReceipt alloc] initWithData:attribute.dataValue];
-                [mutableInAppReceipts setObject:inAppReceipt forKey:inAppReceipt.productId];
                 [mutableInAppReceiptsArray addObject:inAppReceipt];
             } else {
                 [mutableAttributes setObject:attribute forKey:@(attribute.type)];
@@ -150,6 +148,16 @@
     }
     return self;
 }
+
+- (DHInAppReceipt * _Nullable)receiptForProductId:(NSString * _Nonnull)productId {
+    for (DHInAppReceipt *receipt in self.inAppReceipts) {
+        if ([receipt.productId isEqualToString: productId]) {
+            return receipt;
+        }
+    }
+    return nil;
+}
+
 
 - (NSData *)decodePKCS7:(NSData *)data {
     const unsigned char *bytes = [data bytes];
